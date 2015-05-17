@@ -7,10 +7,10 @@
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-    <script src="http://d3js.org/d3.v3.min.js" type="text/javascript"></script>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script src="http://ptv-logistics.github.io/Leaflet.NonTiledLayer/NonTiledLayer.js"></script>
     <script src="http://ptv-logistics.github.io/Leaflet.NonTiledLayer/NonTiledLayer.WMS.js"></script>
+    <script src="./d3.min.js" type="text/javascript"></script> <!-- have to add it locally, sometimes doesn't load from cdn -->
     <script src="./d3layer.js"></script>
 
     <style>
@@ -50,8 +50,6 @@
             opacity: 0;
         }
 
-        }
-
         .drinks {
             stroke: black;
             fill: red;
@@ -77,10 +75,10 @@
             stroke-width: 1.5px;
         }
 
-        .states:hover {
-            fill: brown;
-            fill-opacity: .7;
-        }
+            .states:hover {
+                fill: brown;
+                fill-opacity: .7;
+            }
 
         .leaflet-top-pane {
             pointer-events: none;
@@ -90,12 +88,12 @@
 <body>
     <div id="demo"></div>
     <div id="map"></div>
-    <script>
+    <script id="4">
         // original post: http://zevross.com/blog/2014/09/30/use-the-amazing-d3-library-to-animate-a-path-on-a-leaflet-map/
         // modified for ptv and to keep zoom-animation
         var map = L.map('map');
 
-        // create a separate pane for the xmap labels, so they are displayed on top of the route line
+        // create a separate pane for the xmap labels, so they are displayed on top of svg content
         // http://bl.ocks.org/rsudekum/5431771
         map._panes.labelPane = map._createPane('leaflet-top-pane', map.getPanes().shadowPane);
 
@@ -105,29 +103,28 @@
             map.getPanes().labelPane).addTo(map);
 
         // goto NYC
-        map.setView([40.72332345541449, -73.99], 15);
+        map.setView([40.72, -73.99], 14);
 
-        // sample 1 
-        var usStates = new L.SvgLayer().addTo(map);
-        var svg2 = d3.select(usStates._pathRoot);
-        var g2 = svg2.append("g");
+        // sample 1: layer with us states
+        var usStatesLayer = new L.SvgLayer().addTo(map);
+        var usStatesPath = d3.select(usStatesLayer.getPathRoot());
 
-        d3.json("us-states.json", function (collection) {
+        d3.json("http://oliverheilig.github.io/leaflet-d3layer/us-states.json", function (collection) {
             var transform = d3.geo.transform({ point: projectPoint }),
                 path = d3.geo.path().projection(transform);
 
-            var feature = g2.selectAll("path")
-            .data(collection.features)
-              .enter().append("path");
+            var feature = usStatesPath.selectAll("path")
+                .data(collection.features)
+                .enter().append("path");
 
-            map.on("viewreset", reset);
+            usStatesLayer.resetSvg = reset;
             reset();
 
             // Reposition the SVG to cover the features.
             function reset() {
                 feature
                     .attr("class", "states")
-                .attr("d", path);
+                    .attr("d", path);
             }
 
             // Use Leaflet to implement a D3 geometric transformation.
@@ -137,13 +134,14 @@
             }
         });
 
-        var animatedPath = new L.SvgLayer({ pointerEvents: 'none' }).addTo(map);
-        var svg = d3.select(animatedPath._pathRoot);
-        var g = svg.append("g");
+
+        // sample 2: layer with animated path
+        var animatedPathLayer = new L.SvgLayer({ pointerEvents: 'none' }).addTo(map);
+        var g = d3.select(animatedPathLayer.getPathRoot());
 
         //read in the GeoJSON. This function is asynchronous so
         // anything that needs the json file should be within
-        d3.json("points.geojson", function (collection) {
+        d3.json("http://oliverheilig.github.io/leaflet-d3layer/points.geojson", function (collection) {
 
             // this is not needed right now, but for future we may need
             // to implement some filtering. This uses the d3 filter function
@@ -216,12 +214,9 @@
                     return -10;
                 });
 
-
-            // when the user zooms in or out you need to reset
-            // the view
-
-            animatedPath.resetSvg = reset;
-            reset(animatedPath);
+            // when the user zooms in or out you need to reset the view
+            reset(animatedPathLayer);
+            animatedPathLayer.resetSvg = reset;
             transition();
 
             // Reposition the SVG to cover the features.
@@ -233,7 +228,7 @@
                 var applyLatLngToLayer = function (d) {
                     var y = d.geometry.coordinates[1];
                     var x = d.geometry.coordinates[0];
-                    return layer._map.latLngToLayerPoint(new L.LatLng(y, x));
+                    return layer.getMap().latLngToLayerPoint(new L.LatLng(y, x));
                 }
 
                 // here you're setting some styles, width, heigh etc
@@ -242,14 +237,12 @@
                 // cover our features BUT... since you might be using a big
                 // circle to represent a 1 dimensional point, the circle
                 // might get cut off.
-
                 text.attr("transform",
                     function (d) {
                         return "translate(" +
                             applyLatLngToLayer(d).x + "," +
                             applyLatLngToLayer(d).y + ")";
                     });
-
 
                 // for the points we need to convert from latlong
                 // to map units
@@ -269,16 +262,14 @@
 
                 // again, not best practice, but I'm harding coding
                 // the starting point
-
                 marker.attr("transform",
                     function () {
                         var y = featuresdata[0].geometry.coordinates[1];
                         var x = featuresdata[0].geometry.coordinates[0];
                         return "translate(" +
-                            layer._map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-                            layer._map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
+                            layer.getMap().latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                            layer.getMap().latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
                     });
-
 
                 // Here we're creating a FUNCTION to generate a line
                 // from input points. Since input points will be in
@@ -353,6 +344,7 @@
             } //end tweenDash
         });
 
+
         // returns a layer group for xmap back- and foreground layers
         function getXMapBaseLayers(cluster, style, token, attribution, pane) {
             var background = L.tileLayer('https://ajaxbg{s}-' + cluster + '.cloud.ptvgroup.com/WMS/GetTile/' +
@@ -361,6 +353,7 @@
                     attribution: attribution,
                     subdomains: '1234'
                 });
+
             var foreground = new L.NonTiledLayer.WMS('https://ajaxfg-' + cluster + '.cloud.ptvgroup.com/WMS/WMS?xtok=' + token, {
                 minZoom: 0, maxZoom: 19, opacity: 1.0,
                 layers: style ? 'xmap-' + style + '-fg' : 'xmap-ajaxfg',
@@ -369,6 +362,7 @@
                 zIndex: 100,
                 pane: pane
             });
+
             return L.layerGroup([background, foreground]);
         }
     </script>

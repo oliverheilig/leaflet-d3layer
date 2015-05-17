@@ -22,6 +22,14 @@ L.SvgLayer = L.Class.extend({
         this._uninitPathRoot();
     },
 
+    getPathRoot: function () {
+        return this._pathRoot;
+    },
+
+    getMap: function () {
+        return this._map;
+    },
+
     _initPathRoot: function () {
         if (!this._pathRoot) {
             this._pathRoot = L.Path.prototype._createElement('svg');
