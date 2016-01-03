@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>D3/Leaflet test</title>
+    <title>leaflet-d3layer</title>
     <meta charset="utf-8" />
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
@@ -83,9 +83,8 @@
     </style>
 </head>
 <body>
-    <div id="demo"></div>
     <div id="map"></div>
-    <script id="4">
+    <script>
         // original post: http://zevross.com/blog/2014/09/30/use-the-amazing-d3-library-to-animate-a-path-on-a-leaflet-map/
         // modified for ptv and to keep zoom-animation
         var map = L.map('map');
@@ -101,27 +100,26 @@
         var usStatesPath = d3.select(usStatesLayer.getPathRoot());
 
         d3.json("http://oliverheilig.github.io/leaflet-d3layer/us-states.json", function (collection) {
-            var transform = d3.geo.transform({ point: projectPoint }),
-                path = d3.geo.path().projection(transform);
-
-            var feature = usStatesPath.selectAll("path")
-                .data(collection.features)
-                .enter().append("path");
-
-            usStatesLayer.resetSvg = reset;
-            reset();
-
-            // Reposition the SVG to cover the features.
-            function reset() {
-                feature
-                    .attr("class", "states")
-                    .attr("d", path);
-            }
-
             // Use Leaflet to implement a D3 geometric transformation.
             function projectPoint(x, y) {
                 var point = map.latLngToLayerPoint(new L.LatLng(y, x));
                 this.stream.point(point.x, point.y);
+            }
+
+            var transform = d3.geo.transform({ point: projectPoint }),
+                path = d3.geo.path().projection(transform);
+
+            // create
+            usStatesPath.selectAll("path")
+                .data(collection.features)
+              .enter().append("path")
+                .attr("class", "states")
+                .attr("d", path);
+
+            // reposition
+            usStatesLayer.resetSvg = function () {
+                usStatesPath.selectAll("path")
+                    .attr("d", path);
             }
         });
 
@@ -210,7 +208,7 @@
             animatedPathLayer.resetSvg = reset;
             transition();
 
-            // Reposition the SVG to cover the features.
+            // Create and reposition the SVG to cover the features.
             function reset(layer) {
                 // similar to projectPoint this function converts lat/long to
                 // svg coordinates except that it accepts a point from our
