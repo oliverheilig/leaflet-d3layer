@@ -1,8 +1,7 @@
 // a less hackish way to add d3
-L.SvgLayer = L.Class.extend({
+L.SvgLayer = L.Layer.extend({
     includes: L.Mixin.Events,
     options: {
-        pane: null,
         zIndex: undefined
     },
 
@@ -34,7 +33,7 @@ L.SvgLayer = L.Class.extend({
 
     _initPathRoot: function () {
         if (!this._pathRoot) {
-            this._pathRoot = L.Path.prototype._createElement('svg');
+            this._pathRoot = L.SVG.create('svg'); //L.Path.prototype._createElement('svg');
             this.getPane().appendChild(this._pathRoot);
             if (this.options.pointerEvents) {
                 this._pathRoot.setAttribute('pointer-events', this.options.pointerEvents);
@@ -46,24 +45,12 @@ L.SvgLayer = L.Class.extend({
 
             if (this._map.options.zoomAnimation && L.Browser.any3d) {
                 L.DomUtil.addClass(this._pathRoot, 'leaflet-zoom-animated');
-
-                this._map.on('zoomanim', this._animatePathZoom, this);
-                this._map.on('zoomend', this._endPathZoom, this);
             } else {
                 L.DomUtil.addClass(this._pathRoot, 'leaflet-zoom-hide');
             }
 
-            this._map.on('moveend', this._updateSvgViewport, this);
-            this._map.on('viewreset', this.reset, this);
             this._updateSvgViewport();
         }
-    },
-
-    getPane: function(){
-        if(this.options.pane)
-            return this.options.pane;
-        else
-            return this._map.getPanes().overlayPane;
     },
 
     _uninitPathRoot: function () {
@@ -71,33 +58,55 @@ L.SvgLayer = L.Class.extend({
             //            this._pathRoot = L.Path.prototype._createElement('svg');
             this.getPane().removeChild(this._pathRoot);
 
-            if (this._map.options.zoomAnimation && L.Browser.any3d) {
-                this._map.off('zoomanim', this._animatePathZoom, this);
-                this._map.off('zoomend', this._endPathZoom, this);
-            }
-
-            this._map.off('moveend', this._updateSvgViewport, this);
-            this._map.off('viewreset', this.reset, this);
             this.PathRoot = null;
         }
     },
 
+    getEvents: function () {
+        var events = {
+            moveend: this._updateSvgViewport,
+            zoom: this.reset
+        };
+
+        if (this._map.options.zoomAnimation && L.Browser.any3d) {
+            events.zoomanim = this._animatePathZoom;
+            events.zoomend = this._endPathZoom;
+        }
+
+        return events;
+    },
+
     _animatePathZoom: function (e) {
-        var scale = this._map.getZoomScale(e.zoom),
-		    offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale)._add(this._pathViewport.min);
-
-        this._pathRoot.style[L.DomUtil.TRANSFORM] =
-		        L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ') ';
-
         this._pathZooming = true;
+        this._updateTransform(e.center, e.zoom);
+    },
+
+    _updateTransform: function (center, zoom) {
+        var scale = this._map.getZoomScale(zoom, this._zoom),
+		    position = L.DomUtil.getPosition(this._pathRoot),
+		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.CLIP_PADDING),
+		    currentCenterPoint = this._map.project(this._center, zoom),
+		    destCenterPoint = this._map.project(center, zoom),
+		    centerOffset = destCenterPoint.subtract(currentCenterPoint),
+
+		    topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
+
+        L.DomUtil.setTransform(this._pathRoot, topLeftOffset, scale);
     },
 
     _endPathZoom: function () {
         this._pathZooming = false;
     },
 
+    CLIP_PADDING: (function () {
+        var max = L.Browser.mobile ? 1280 : 2000,
+            target = (max / Math.max(window.outerWidth, window.outerHeight) - 1) / 2;
+        return Math.max(0, Math.min(0.5, target));
+    })(),
+
     _updatePathViewport: function () {
-        var p = L.Path.CLIP_PADDING,
+
+        var p = this.CLIP_PADDING,
 		    size = this._map.getSize(),
 		    panePos = L.DomUtil.getPosition(this._map._mapPane),
 		    min = panePos.multiplyBy(-1)._subtract(size.multiplyBy(p)._round()),
@@ -114,6 +123,7 @@ L.SvgLayer = L.Class.extend({
     },
 
     _updateSvgViewport: function () {
+        this._center = this._map.getCenter();
 
         if (this._pathZooming) {
             // Do not update SVGs while a zoom animation is going on otherwise the animation will break.
