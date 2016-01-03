@@ -1,5 +1,5 @@
 leaflet-d3layer
-###############
+===============
 
 A less hackish way to use D3 with Leaflet
 
