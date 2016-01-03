@@ -1,4 +1,4 @@
-/*
+﻿/*
  * L.NonTiledLayer is an addon for leaflet which renders dynamic image overlays
  */
 
@@ -106,6 +106,10 @@ L.NonTiledLayer = L.Class.extend({
 
 	_initImage: function () {
 		var _image = L.DomUtil.create('img', 'leaflet-image-layer');
+
+		if (this.options.pointerEvents) {
+		    this._div.style['pointer-events'] = this.options.pointerEvents;
+		}
 
 		if (this.options.zIndex !== undefined) {
 			_image.style.zIndex = this.options.zIndex;

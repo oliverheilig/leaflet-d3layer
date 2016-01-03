@@ -80,9 +80,6 @@
                 fill-opacity: .7;
             }
 
-        .leaflet-top-pane {
-            pointer-events: none;
-        }
     </style>
 </head>
 <body>
@@ -93,20 +90,18 @@
         // modified for ptv and to keep zoom-animation
         var map = L.map('map');
 
-        // create a separate pane for the xmap labels, so they are displayed on top of svg content
-        // http://bl.ocks.org/rsudekum/5431771
-        map._panes.labelPane = map._createPane('leaflet-top-pane', map.getPanes().shadowPane);
+        //// create a separate pane for the xmap labels, so they are displayed on top of svg content
+        //// http://bl.ocks.org/rsudekum/5431771
+        //map._panes.labelPane = map._createPane('leaflet-top-pane', map.getPanes().shadowPane);
 
         // init PTV base map
-        getXMapBaseLayers('na-n-test', 'silkysand', '236479325101991',
-            '<a href="http://www.ptvgroup.com">PTV</a>, HERE',
-            map.getPanes().labelPane).addTo(map);
+        getXMapBaseLayers('415896679388959', 'silkysand', map._panes.labelPane).addTo(map);
 
         // goto NYC
         map.setView([40.72, -73.99], 14);
 
         // sample 1: layer with us states
-        var usStatesLayer = new L.SvgLayer().addTo(map);
+        var usStatesLayer = new L.SvgLayer({ zIndex: 0 }).addTo(map);
         var usStatesPath = d3.select(usStatesLayer.getPathRoot());
 
         d3.json("http://oliverheilig.github.io/leaflet-d3layer/us-states.json", function (collection) {
@@ -136,7 +131,7 @@
 
 
         // sample 2: layer with animated path
-        var animatedPathLayer = new L.SvgLayer({ pointerEvents: 'none' }).addTo(map);
+        var animatedPathLayer = new L.SvgLayer({ pointerEvents: 'none', zIndex: 2 }).addTo(map);
         var g = d3.select(animatedPathLayer.getPathRoot());
 
         //read in the GeoJSON. This function is asynchronous so
@@ -346,21 +341,24 @@
 
 
         // returns a layer group for xmap back- and foreground layers
-        function getXMapBaseLayers(cluster, style, token, attribution, pane) {
-            var background = L.tileLayer('https://ajaxbg{s}-' + cluster + '.cloud.ptvgroup.com/WMS/GetTile/' +
+        function getXMapBaseLayers(token, style, pane) {
+            var attribution = '<a href="http://www.ptvgroup.com">PTV</a>, HERE';
+
+            var background = L.tileLayer('https://api{s}-test.cloud.ptvgroup.com/WMS/GetTile/' +
                 (style ? 'xmap-' + style + '-bg' : 'xmap-ajaxbg') + '/{x}/{y}/{z}.png', {
                     minZoom: 0, maxZoom: 19, opacity: 1.0,
                     attribution: attribution,
                     subdomains: '1234'
                 });
 
-            var foreground = new L.NonTiledLayer.WMS('https://ajaxfg-' + cluster + '.cloud.ptvgroup.com/WMS/WMS?xtok=' + token, {
+            var foreground = new L.NonTiledLayer.WMS('https://api-test.cloud.ptvgroup.com/WMS/WMS' + (token? '?xtok=' + token : ''), {
                 minZoom: 0, maxZoom: 19, opacity: 1.0,
                 layers: style ? 'xmap-' + style + '-fg' : 'xmap-ajaxfg',
                 format: 'image/png', transparent: true,
                 attribution: attribution,
-                zIndex: 100,
-                pane: pane
+                zIndex: 1,
+                pane: pane,
+                pointerEvents: 'none'
             });
 
             return L.layerGroup([background, foreground]);

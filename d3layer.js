@@ -2,6 +2,8 @@
 L.SvgLayer = L.Class.extend({
     includes: L.Mixin.Events,
     options: {
+        pane: null,
+        zIndex: undefined
     },
 
     initialize: function (options) {
@@ -33,9 +35,13 @@ L.SvgLayer = L.Class.extend({
     _initPathRoot: function () {
         if (!this._pathRoot) {
             this._pathRoot = L.Path.prototype._createElement('svg');
-            this._map.getPanes().overlayPane.appendChild(this._pathRoot);
+            this.getPane().appendChild(this._pathRoot);
             if (this.options.pointerEvents) {
                 this._pathRoot.setAttribute('pointer-events', this.options.pointerEvents);
+            }
+
+            if (this.options.zIndex !== undefined) {
+                this._pathRoot.style.zIndex = this.options.zIndex;
             }
 
             if (this._map.options.zoomAnimation && L.Browser.any3d) {
@@ -53,10 +59,17 @@ L.SvgLayer = L.Class.extend({
         }
     },
 
+    getPane: function(){
+        if(this.options.pane)
+            return this.options.pane;
+        else
+            return this._map.getPanes().overlayPane;
+    },
+
     _uninitPathRoot: function () {
         if (this._pathRoot) {
             //            this._pathRoot = L.Path.prototype._createElement('svg');
-            this._map.getPanes().overlayPane.removeChild(this._pathRoot);
+            this.getPane().removeChild(this._pathRoot);
 
             if (this._map.options.zoomAnimation && L.Browser.any3d) {
                 this._map.off('zoomanim', this._animatePathZoom, this);
@@ -117,7 +130,7 @@ L.SvgLayer = L.Class.extend({
 		    width = max.x - min.x,
 		    height = max.y - min.y,
 		    root = this._pathRoot,
-		    pane = this._map._panes.overlayPane;
+		    pane = this.getPane();
 
         // Hack to make flicker on drag end on mobile webkit less irritating
         if (L.Browser.mobileWebkit) {
