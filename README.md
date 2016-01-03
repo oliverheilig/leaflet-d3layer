@@ -1,4 +1,6 @@
-# leaflet-d3layer
+leaflet-d3layer
+###############
+
 A less hackish way to use D3 with Leaflet
 
 I've started this project to add D3/SVG content to a Leaflet map. There are some amazing samples by 
@@ -12,8 +14,14 @@ I've added both samples to one common demo
 
 http://oliverheilig.github.io/leaflet-d3layer/
 
-I'm using this approach at this code sample for my company's routing services
+Projects where i use this layer:
 
-http://ptv-logistics.github.io/fl-labs/
+http://ptv-logistics.github.io/fl-labs/ and http://oliverheilig.github.io/voronoi-territories/
 
-Hope i can extend this class when i'm more familiar with D3/SVG.
+The supported options
+
+* *attribution* - the attribution text for the layer data
+* *opacity* - the opacity value between 0.0 and 1.0; default = 1.0
+* *zIndex* - z-index of the svg root
+* *pane* - the name of the pane where the child div is inserted; default: 'overlayPane' 
+* *pointerEvents* - the pointer-events style for the overlayer, default: null

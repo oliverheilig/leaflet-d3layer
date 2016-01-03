@@ -2,6 +2,8 @@
 L.SvgLayer = L.Layer.extend({
     includes: L.Mixin.Events,
     options: {
+        attribution: '',
+        opacity: 1.0,
         zIndex: undefined
     },
 
@@ -31,10 +33,15 @@ L.SvgLayer = L.Layer.extend({
         return this._map;
     },
 
+    getAttribution: function () {
+        return this.options.attribution;
+    },
+
     _initPathRoot: function () {
         if (!this._pathRoot) {
             this._pathRoot = L.SVG.create('svg'); //L.Path.prototype._createElement('svg');
             this.getPane().appendChild(this._pathRoot);
+
             if (this.options.pointerEvents) {
                 this._pathRoot.setAttribute('pointer-events', this.options.pointerEvents);
             }
@@ -42,6 +49,8 @@ L.SvgLayer = L.Layer.extend({
             if (this.options.zIndex !== undefined) {
                 this._pathRoot.style.zIndex = this.options.zIndex;
             }
+
+            L.DomUtil.setOpacity(this._pathRoot, this.options.opacity);
 
             if (this._map.options.zoomAnimation && L.Browser.any3d) {
                 L.DomUtil.addClass(this._pathRoot, 'leaflet-zoom-animated');
@@ -51,6 +60,24 @@ L.SvgLayer = L.Layer.extend({
 
             this._updateSvgViewport();
         }
+    },
+
+    setOpacity: function (opacity) {
+        this.options.opacity = opacity;
+        if (this._pathRoot) {
+            L.DomUtil.setOpacity(this._pathRoot, this.options.opacity);
+        }
+        return this;
+    },
+
+    setZIndex: function (zIndex) {
+        if (zIndex) {
+            this.options.zIndex = zIndex;
+            if (this._pathRoot) {
+                this._pathRoot.style.zIndex = this.options.zIndex;
+            }
+        }
+        return this;
     },
 
     _uninitPathRoot: function () {
