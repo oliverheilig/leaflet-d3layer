@@ -42,9 +42,7 @@ L.SvgLayer = L.Layer.extend({
             this._pathRoot = L.SVG.create('svg'); //L.Path.prototype._createElement('svg');
             this.getPane().appendChild(this._pathRoot);
 
-            if (this.options.pointerEvents) {
-                this._pathRoot.setAttribute('pointer-events', this.options.pointerEvents);
-            }
+            this._pathRoot.setAttribute('pointer-events', 'none');
 
             if (this.options.zIndex !== undefined) {
                 this._pathRoot.style.zIndex = this.options.zIndex;
@@ -110,13 +108,13 @@ L.SvgLayer = L.Layer.extend({
 
     _updateTransform: function (center, zoom) {
         var scale = this._map.getZoomScale(zoom, this._zoom),
-		    position = L.DomUtil.getPosition(this._pathRoot),
-		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.CLIP_PADDING),
-		    currentCenterPoint = this._map.project(this._center, zoom),
-		    destCenterPoint = this._map.project(center, zoom),
-		    centerOffset = destCenterPoint.subtract(currentCenterPoint),
+            position = L.DomUtil.getPosition(this._pathRoot),
+            viewHalf = this._map.getSize().multiplyBy(0.5 + this.CLIP_PADDING),
+            currentCenterPoint = this._map.project(this._center, zoom),
+            destCenterPoint = this._map.project(center, zoom),
+            centerOffset = destCenterPoint.subtract(currentCenterPoint),
 
-		    topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
+            topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
 
         L.DomUtil.setTransform(this._pathRoot, topLeftOffset, scale);
     },
@@ -134,10 +132,10 @@ L.SvgLayer = L.Layer.extend({
     _updatePathViewport: function () {
 
         var p = this.CLIP_PADDING,
-		    size = this._map.getSize(),
-		    panePos = L.DomUtil.getPosition(this._map._mapPane),
-		    min = panePos.multiplyBy(-1)._subtract(size.multiplyBy(p)._round()),
-		    max = min.add(size.multiplyBy(1 + p * 2)._round());
+            size = this._map.getSize(),
+            panePos = L.DomUtil.getPosition(this._map._mapPane),
+            min = panePos.multiplyBy(-1)._subtract(size.multiplyBy(p)._round()),
+            max = min.add(size.multiplyBy(1 + p * 2)._round());
 
         this._pathViewport = new L.Bounds(min, max);
     },
@@ -162,12 +160,12 @@ L.SvgLayer = L.Layer.extend({
         this._updatePathViewport();
 
         var vp = this._pathViewport,
-		    min = vp.min,
-		    max = vp.max,
-		    width = max.x - min.x,
-		    height = max.y - min.y,
-		    root = this._pathRoot,
-		    pane = this.getPane();
+            min = vp.min,
+            max = vp.max,
+            width = max.x - min.x,
+            height = max.y - min.y,
+            root = this._pathRoot,
+            pane = this.getPane();
 
         // Hack to make flicker on drag end on mobile webkit less irritating
         if (L.Browser.mobileWebkit) {
