@@ -1,6 +1,5 @@
 // a less hackish way to add d3
 L.SvgLayer = L.Layer.extend({
-    includes: L.Mixin.Events,
     options: {
         attribution: '',
         opacity: 1.0,
@@ -182,3 +181,7 @@ L.SvgLayer = L.Layer.extend({
         }
     }
 });
+
+L.svgLayer = function (options) {
+    return new L.SvgLayer(options);
+};

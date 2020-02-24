@@ -1,13 +1,12 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>leaflet-d3layer</title>
     <meta charset="utf-8" />
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.nontiledlayer@1.0.7/dist/NonTiledLayer.js"></script>
     <script src="https://unpkg.com/d3@3.5.5/d3.min.js"></script>
     <script src="./d3layer.js"></script>
@@ -91,7 +90,7 @@
         });
 
         // init PTV base map
-        getXMapBaseLayers('9358789A-A8CF-4CA8-AC99-1C0C4AC07F1E', 'silkysand', 'tilePane').addTo(map);
+        getXMapBaseLayers('E86975F3-97BB-4DB2-A733-0B4DD50E10D5', 'silkysand', 'tilePane').addTo(map);
 
         // goto NYC
         map.setView([40.72, -73.99], 14);
@@ -100,7 +99,7 @@
         var usStatesLayer = new L.SvgLayer({zIndex: 0 }).addTo(map);
         var usStatesPath = d3.select(usStatesLayer.getPathRoot());
 
-        d3.json("http://oliverheilig.github.io/leaflet-d3layer/us-states.json", function (collection) {
+        d3.json("https://raw.githubusercontent.com/oliverheilig/leaflet-d3layer/master/us-states.json", function (collection) {
             // Use Leaflet to implement a D3 geometric transformation.
             function projectPoint(x, y) {
                 var point = map.latLngToLayerPoint(new L.LatLng(y, x));
