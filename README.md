@@ -10,11 +10,11 @@ So i can better control initialization, events an z-Ordering.
 
 I've added both samples to one common demo
 
-http://oliverheilig.github.io/leaflet-d3layer/
+https://oliverheilig.github.io/leaflet-d3layer/
 
 Projects where i use this layer:
 
-http://ptv-logistics.github.io/fl-labs/ and http://oliverheilig.github.io/voronoi-territories/
+https://ptv-logistics.github.io/fl-labs/ and https://oliverheilig.github.io/voronoi-territories/
 
 The supported options
 
