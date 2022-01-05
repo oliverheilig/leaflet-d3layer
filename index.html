@@ -5,9 +5,8 @@
     <meta charset="utf-8" />
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.nontiledlayer@1.0.7/dist/NonTiledLayer.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/d3@3.5.5/d3.min.js"></script>
     <script src="./d3layer.js"></script>
 
@@ -89,8 +88,14 @@
             wheelPxPerZoomLevel: 100
         });
 
-        // init PTV base map
-        getXMapBaseLayers('E86975F3-97BB-4DB2-A733-0B4DD50E10D5', 'silkysand', 'tilePane').addTo(map);
+        // This is my personal api key. Please get your own free key at https://developer.myptv.com/
+        var apiKey = 'YjA2OGIzOGMxMjdiNGZkOGIwYTMwNmI0OGE4Y2ZiMTc6Y2QwZjUyMDYtMTk2Ni00N2NlLWFmNTYtNzBjOWZjZTgxNzJh';
+
+        L.tileLayer('https://api.myptv.com/rastermaps/v1/image-tiles/{z}/{x}/{y}?apiKey={apiKey}', {
+            maxZoom: 22,
+            attribution: '&copy; 2022 PTV AG, HERE',
+            apiKey: apiKey
+        }).addTo(map);
 
         // goto NYC
         map.setView([40.72, -73.99], 14);
@@ -130,7 +135,7 @@
 
         //read in the GeoJSON. This function is asynchronous so
         // anything that needs the json file should be within
-        d3.json("http://oliverheilig.github.io/leaflet-d3layer/points.geojson", function (collection) {
+        d3.json("https://oliverheilig.github.io/leaflet-d3layer/points.geojson", function (collection) {
 
             // this is not needed right now, but for future we may need
             // to implement some filtering. This uses the d3 filter function
@@ -334,28 +339,6 @@
         });
 
 
-        // returns a layer group for xmap back- and foreground layers
-        function getXMapBaseLayers(token, style, pane) {
-            var attribution = '<a href="http://www.ptvgroup.com">PTV</a>, HERE';
-
-            var background = L.tileLayer('https://api{s}-test.cloud.ptvgroup.com/WMS/GetTile/' +
-                (style ? 'xmap-' + style + '-bg' : 'xmap-ajaxbg') + '/{x}/{y}/{z}.png', {
-                    minZoom: 0, maxZoom: 19, opacity: 1.0,
-                    attribution: attribution,
-                    subdomains: '1234'
-                });
-
-            var foreground = new L.NonTiledLayer.WMS('https://api-test.cloud.ptvgroup.com/WMS/WMS' + (token? '?xtok=' + token : ''), {
-                minZoom: 0, maxZoom: 19, opacity: 1.0,
-                layers: style ? 'xmap-' + style + '-fg' : 'xmap-ajaxfg',
-                format: 'image/png', transparent: true,
-                attribution: attribution,
-                zIndex: 1,
-                pointerEvents: 'none'
-            });
-
-            return L.layerGroup([background, foreground]);
-        }
     </script>
 </body>
 </html>
